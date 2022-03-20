@@ -14,6 +14,21 @@ public class enemyGameField : NetworkBehaviour
     //enemy played a card
     public void PlayCard(string cardId, GameObject cardInHand, Vector3 position, bool inHiddenDefense)
     {
+
+        //Delete Taunting Effects if card has taunting
+        if (hasTauntingCard() && cardInHand.GetComponent<BacksideCard>().hasEffect(StandardEffects.TAUNTING))
+        {
+            foreach (Position pos in positions) {
+                if (pos.GetUsed())
+                {
+                    if (pos.GetCard().GetComponent<BacksideCard>().hasEffect(StandardEffects.TAUNTING))
+                    {
+                        pos.GetCard().GetComponent<BacksideCard>().removeEffect(StandardEffects.TAUNTING);
+                    }
+                }
+            }
+        }
+
         //create and set position
         Position newPosition = new Position(new Vector3(position.x, gameObject.transform.position.y, position.z), Vector3.zero);
         newPosition.SetCard(cardInHand);
@@ -26,10 +41,12 @@ public class enemyGameField : NetworkBehaviour
         cardScript.inGameField = true;
         Sprite sprite = Resources.Load<Sprite>("Images/Cards/" + cardId.Remove(5));
         cardScript.sprite = sprite;
+        cardScript.setInDefenseMode(false);
         if (inHiddenDefense)
         {
             cardScript.setInHiddenDefense(inHiddenDefense);
             cardScript.setInDefenseMode(true);
+            cardScript.removeAllEffects();
             Sprite backside = Resources.Load<Sprite>("Images/Cards/C0000");
             StartCoroutine(WaitCoroutine(backside, cardInHand));
         }else
@@ -85,6 +102,34 @@ public class enemyGameField : NetworkBehaviour
                 pos.GetCard().GetComponent<BacksideCard>().setDidCardAttack(false);
             }
         }
+    }
+
+    public void resetCards()
+    {
+        foreach (Position pos in positions)
+        {
+            if (pos.GetUsed())
+            {
+                pos.GetCard().GetComponent<BacksideCard>().resetFightDamage();
+                //c.attack = c.originalAttack;
+                //c.defense = c.originalDefense;
+            }
+        }
+    }
+
+    public bool hasTauntingCard()
+    {
+        foreach (Position pos in positions)
+        {
+            if (pos.GetUsed())
+            {
+                if (pos.GetCard().GetComponent<BacksideCard>().hasEffect(StandardEffects.TAUNTING))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

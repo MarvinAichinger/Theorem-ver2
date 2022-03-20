@@ -9,9 +9,11 @@ public class BacksideCard : NetworkBehaviour
 
     //attack of the card
     public int attack;
+    public int originalAttack;
 
     //defense of the card
     public int defense;
+    public int originalDefense;
 
     //is card currently in defense mode
     public bool inDefenseMode = false;
@@ -30,6 +32,19 @@ public class BacksideCard : NetworkBehaviour
 
     //Sprite of the card
     public Sprite sprite;
+
+    //List of Tokens
+    LinkedList<CardToken> tokens = new LinkedList<CardToken>();
+
+    //List of Standard Effects
+    private List<StandardEffects> standardEffects;
+
+    public void init()
+    {
+        //insert fight token to tokens
+        CardToken fightToken = new CardToken(0, 0, gameObject);
+        tokens.AddFirst(fightToken);
+    }
 
     //moves and rotates the card
     public void moveCardTo(Vector3 position, Vector3 rotation)
@@ -68,11 +83,37 @@ public class BacksideCard : NetworkBehaviour
     {
         if (inDefenseMode)
         {
-            return defense;
-        }else
-        {
-            return attack;
+            int value = defense + tokens.First.Value.getDefenseChange();
+            return value;
         }
+        else
+        {
+            int value = attack + tokens.First.Value.getAttackChange();
+            return value;
+        }
+    }
+
+    public void takeDamage(int value)
+    {
+        if (inDefenseMode)
+        {
+            //defense -= value;
+            int currDValue = tokens.First.Value.getDefenseChange();
+            int currAValue = tokens.First.Value.getAttackChange();
+            tokens.First.Value.setTokenValues(currAValue, currDValue - value);
+        }
+        else
+        {
+            //attack -= value;
+            int currAValue = tokens.First.Value.getAttackChange();
+            int currDValue = tokens.First.Value.getDefenseChange();
+            tokens.First.Value.setTokenValues(currAValue - value, currDValue);
+        }
+    }
+
+    public void resetFightDamage()
+    {
+        tokens.First.Value.setTokenValues(0, 0);
     }
 
     public void setDidCardAttack(bool value)
@@ -96,10 +137,13 @@ public class BacksideCard : NetworkBehaviour
         inDefenseMode = value;
         if (inDefenseMode)
         {
-            gameObject.GetComponent<SpriteRenderer>().color = new Color(0.5f, 1f, 1f, 1f);
-        }else
+            gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schild");
+            //gameObject.GetComponent<SpriteRenderer>().color = new Color(0.5f, 1f, 1f, 1f);
+        }
+        else
         {
-            gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+            gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schwert");
+            //gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
         }
     }
 
@@ -123,6 +167,31 @@ public class BacksideCard : NetworkBehaviour
     {
         this.inHiddenDefense = value;
         StartCoroutine(flipCard());
+    }
+
+    public bool hasEffect(StandardEffects effect)
+    {
+        return standardEffects.Contains(effect);
+    }
+
+    public void removeEffect(StandardEffects effect)
+    {
+        standardEffects.Remove(effect);
+    }
+
+    public List<StandardEffects> getStandardEffects()
+    {
+        return this.standardEffects;
+    }
+
+    public void setStandardEffects(List<StandardEffects> list)
+    {
+        this.standardEffects = list;
+    }
+
+    public void removeAllEffects()
+    {
+        standardEffects = new List<StandardEffects>();
     }
 
 }

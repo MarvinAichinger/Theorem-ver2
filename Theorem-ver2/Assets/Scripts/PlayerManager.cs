@@ -33,7 +33,8 @@ public class PlayerManager : NetworkBehaviour
             {
 
                 server.player1.identity.GetComponent<PlayerManager>().playerStartedRpc();
-            }else
+            }
+            else
             {
                 server.player2.identity.GetComponent<PlayerManager>().playerStartedRpc();
             }
@@ -45,7 +46,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void playerStartedCmd()
     {
-        playerStartedRpc();
+        //playerStartedRpc();
     }
     //Inform Client that the other player started the game
     [ClientRpc]
@@ -54,6 +55,10 @@ public class PlayerManager : NetworkBehaviour
         if (!isLocalPlayer)
         {
             GameObject.Find("PlayerStats").GetComponent<PlayerStats>().setGameStatus("wait");
+            GameObject.Find("Allert").GetComponent<Allert>().allert("Enemy starts", 2f);
+        }else
+        {
+            GameObject.Find("Allert").GetComponent<Allert>().allert("You start", 2f);
         }
     }
 
@@ -75,13 +80,13 @@ public class PlayerManager : NetworkBehaviour
 
     //Inform Server that a card is played
     [Command]
-    public void cardPlayedCmd(string cardId, Vector3 position, int attack, int defense, bool inHiddenDefense)
+    public void cardPlayedCmd(string cardId, Vector3 position, int attack, int defense, bool inHiddenDefense, List<StandardEffects> effects)
     {
-        cardPlayedRpc(cardId, position, attack, defense, inHiddenDefense);
+        cardPlayedRpc(cardId, position, attack, defense, inHiddenDefense, effects);
     }
     //Inform Client that enemy played a card
     [ClientRpc]
-    public void cardPlayedRpc(string cardId, Vector3 position, int attack, int defense, bool inHiddenDefense)
+    public void cardPlayedRpc(string cardId, Vector3 position, int attack, int defense, bool inHiddenDefense, List<StandardEffects> effects)
     {
         if (!isLocalPlayer)
         {
@@ -90,6 +95,10 @@ public class PlayerManager : NetworkBehaviour
             enemyHand.RemoveCard(cardInHand);
             cardInHand.GetComponent<BacksideCard>().attack = attack;
             cardInHand.GetComponent<BacksideCard>().defense = defense;
+            cardInHand.GetComponent<BacksideCard>().originalAttack = attack;
+            cardInHand.GetComponent<BacksideCard>().originalDefense = defense;
+            cardInHand.GetComponent<BacksideCard>().setStandardEffects(effects);
+            cardInHand.GetComponent<BacksideCard>().init();
             GameObject.Find("enemyGameField").GetComponent<enemyGameField>().PlayCard(cardId, cardInHand, position, inHiddenDefense);
         }
     }

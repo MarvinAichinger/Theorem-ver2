@@ -100,12 +100,14 @@ public class playerGameField : NetworkBehaviour
 
         PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
         //TODO inform server about played card (strength, ...)
-        player.cardPlayedCmd(card.gameObject.name, position.GetCoord(), cardScript.attack, cardScript.defense, cardScript.inHiddenDefense);
+        player.cardPlayedCmd(card.gameObject.name, position.GetCoord(), cardScript.attack, cardScript.defense, cardScript.inHiddenDefense, cardScript.getStandardEffects());
 
+        cardScript.setInDefenseMode(false);
         if (cardScript.inHiddenDefense)
         {
             cardScript.setInDefenseMode(true);
             cardScript.canAttack = false;
+            cardScript.removeAllEffects();
         }else
         {
             cardScript.canAttack = true;
@@ -179,6 +181,19 @@ public class playerGameField : NetworkBehaviour
             if (pos.GetUsed())
             {
                 pos.GetCard().GetComponent<Card>().setDidCardAttack(false);
+            }
+        }
+    }
+
+    public void resetCards()
+    {
+        foreach (Position pos in positions)
+        {
+            if (pos.GetUsed())
+            {
+                pos.GetCard().GetComponent<Card>().resetFightDamage();
+                //c.attack = c.originalAttack;
+                //c.defense = c.originalDefense;
             }
         }
     }
