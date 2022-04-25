@@ -76,6 +76,9 @@ public class Card : NetworkBehaviour
     [SerializeField]
     private List<StandardEffects> standardEffects;
 
+    //Is Card Trapped
+    private bool trapped = false;
+
     public void Start()
     {
         hand = GameObject.Find(handName);
@@ -367,14 +370,18 @@ public class Card : NetworkBehaviour
     {
         inDefenseMode = value;
         canAttack = !value;
-        if (inDefenseMode)
+        if (!trapped)
         {
-            gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schild");
-            //gameObject.GetComponent<SpriteRenderer>().color = new Color(0.5f, 1f, 1f, 1f);
-        }else
-        {
-            gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schwert");
-            //gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+            if (inDefenseMode)
+            {
+                gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schild");
+                //gameObject.GetComponent<SpriteRenderer>().color = new Color(0.5f, 1f, 1f, 1f);
+            }
+            else
+            {
+                gameObject.transform.Find("stance").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Images/icons/schwert");
+                //gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+            }
         }
 
         PlayerManager playerManager = NetworkClient.connection.identity.GetComponent<PlayerManager>();
@@ -418,6 +425,23 @@ public class Card : NetworkBehaviour
 
     public void removeAllEffects()
     {
-        standardEffects = new List<StandardEffects>();
+        if (hasEffect(StandardEffects.CAGE))
+        {
+            standardEffects = new List<StandardEffects>();
+            standardEffects.Add(StandardEffects.CAGE);
+        }else
+        {
+            standardEffects = new List<StandardEffects>();
+        }
+    }
+
+    public bool getTrapped()
+    {
+        return this.trapped;
+    }
+
+    public void setTrapped(bool value)
+    {
+        this.trapped = value;
     }
 }

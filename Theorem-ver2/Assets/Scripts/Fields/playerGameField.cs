@@ -98,20 +98,31 @@ public class playerGameField : NetworkBehaviour
 
         Card cardScript = card.GetComponent<Card>();
 
+        if (cardScript.hasEffect(StandardEffects.CAGE))
+        {
+            cardScript.setInHiddenDefense(true);
+        }
+
+        if (cardScript.inHiddenDefense)
+        {
+            cardScript.removeAllEffects();
+        }
+
         PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
-        //TODO inform server about played card (strength, ...)
+        //inform server about played card (strength, ...)
         player.cardPlayedCmd(card.gameObject.name, position.GetCoord(), cardScript.attack, cardScript.defense, cardScript.inHiddenDefense, cardScript.getStandardEffects());
+
 
         cardScript.setInDefenseMode(false);
         if (cardScript.inHiddenDefense)
         {
             cardScript.setInDefenseMode(true);
             cardScript.canAttack = false;
-            cardScript.removeAllEffects();
         }else
         {
             cardScript.canAttack = true;
         }
+
 
         cardScript.moveCardTo(position.GetCoord(), position.GetRotation());
 

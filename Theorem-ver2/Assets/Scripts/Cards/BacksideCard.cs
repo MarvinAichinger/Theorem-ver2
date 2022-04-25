@@ -191,7 +191,15 @@ public class BacksideCard : NetworkBehaviour
 
     public void removeAllEffects()
     {
-        standardEffects = new List<StandardEffects>();
+        if (hasEffect(StandardEffects.CAGE))
+        {
+            standardEffects = new List<StandardEffects>();
+            standardEffects.Add(StandardEffects.CAGE);
+        }
+        else
+        {
+            standardEffects = new List<StandardEffects>();
+        }
     }
 
 }

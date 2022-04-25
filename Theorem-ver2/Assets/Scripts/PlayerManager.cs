@@ -2,16 +2,68 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using SocketIOClient;
+using SocketIOClient.Newtonsoft.Json;
+using System;
 
 public class PlayerManager : NetworkBehaviour
 {
-    
-    //Client started
+
+    public SocketIOUnity socket;
+
+    void Start()
+    {
+
+        var uri = new Uri("http://130.162.37.236:3000");
+        socket = new SocketIOUnity(uri, new SocketIOOptions
+        {
+            Query = new Dictionary<string, string>
+                {
+                    {"token", "UNITY" }
+                }
+            ,
+            Transport = SocketIOClient.Transport.TransportProtocol.WebSocket
+        });
+
+        socket.OnConnected += (sender, e) =>
+        {
+            Debug.Log("socket.OnConnected");
+        };
+
+        socket.OnDisconnected += (sender, e) =>
+        {
+            Debug.Log("socket.OnDisconnect");
+        };
+
+        socket.On("gameRoomID", (response) =>
+        {
+            Debug.Log(response.GetValue());
+        });
+
+        socket.On("startGame", (response) =>
+        {
+            bool starting = response.GetValue<bool>();
+            if (starting)
+            {
+                GameObject.Find("Allert").GetComponent<Allert>().allert("You start", 2f);
+            }else
+            {
+                GameObject.Find("PlayerStats").GetComponent<PlayerStats>().setGameStatus("wait");
+                GameObject.Find("Allert").GetComponent<Allert>().allert("Enemy starts", 2f);
+            }
+        });
+
+        Debug.Log("Connecting...");
+        socket.Connect();
+    }
+
+
+    /*/Client started
     public override void OnStartClient()
     {
         base.OnStartClient();
         playerReadyCmd();
-    }
+    }*/
 
     //A Client Connected to the game and is ready
     [Command]
@@ -28,7 +80,7 @@ public class PlayerManager : NetworkBehaviour
         {
             server.player2 = connectionToClient;
 
-            int rnd = Random.Range(0, 2);
+            int rnd = UnityEngine.Random.Range(0, 2);
             if (rnd == 0)
             {
 

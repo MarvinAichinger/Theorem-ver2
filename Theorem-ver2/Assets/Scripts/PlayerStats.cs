@@ -211,7 +211,39 @@ public class PlayerStats : NetworkBehaviour
             yield return new WaitForSeconds(2f);
 
             //================Fight==============
-            if (isAttacking && enemyCardScript.hasEffect(StandardEffects.SHIELD) || !isAttacking && playerCardScript.hasEffect(StandardEffects.SHIELD))
+            Debug.Log(playerCardScript.hasEffect(StandardEffects.CAGE));
+            Debug.Log(enemyCardScript.hasEffect(StandardEffects.CAGE));
+            if (enemyCardScript.hasEffect(StandardEffects.CAGE) || playerCardScript.hasEffect(StandardEffects.CAGE))
+            {
+                Debug.Log("herinnen");
+                //Defending Card is Cage
+                if (!isAttacking)
+                {
+                    //Trap Card dies - attacking card moves back
+                    enemyCardScript.moveCardTo(enemyCardStartPos);
+
+                    playerCardScript.moveCardTo(new Vector3(-7.5f, -3.75f, -1), Vector3.zero);
+                    GameObject.Find("playerGameField").GetComponent<playerGameField>().RemoveCard(playerCard);
+                    playerCardScript.setDraggable(false);
+                    playerCardScript.canAttack = false;
+
+                }
+                else
+                {
+
+                    //Trap Card dies - attacking card moves back
+                    playerCardScript.moveCardTo(playerCardStartPos, Vector3.zero);
+
+                    enemyCardScript.moveCardTo(new Vector3(7.5f, 3.75f, -1));
+                    GameObject.Find("enemyGameField").GetComponent<enemyGameField>().RemoveCard(enemyCard);
+                    enemyCardScript.inGameField = false;
+
+                    playerCardScript.setInDefenseMode(true);
+                    playerCardScript.setTrapped(true);
+
+                }
+
+            }else if (isAttacking && enemyCardScript.hasEffect(StandardEffects.SHIELD) || !isAttacking && playerCardScript.hasEffect(StandardEffects.SHIELD))
             {
                 //Defending Card has Shield effect
                 if (isAttacking)
@@ -400,6 +432,7 @@ public class PlayerStats : NetworkBehaviour
             GameObject.Find("NextButton").GetComponent<NextButton>().setIsDisabled(false);
         }
     }
+
 
     public void showCardsFighting(Vector3[] attackingCardsPos, Vector3[] attackedCardsPos, Vector3[] attackingUserCardsPos)
     {
